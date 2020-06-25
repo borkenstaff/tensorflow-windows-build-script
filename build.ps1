@@ -9,7 +9,8 @@ param (
     [switch]$ReserveSource = $false,
     [switch]$ReserveVenv = $false,
     [switch]$IgnoreDepsVersionIssues = $false,
-    [switch]$InstallDefaultDeps = $false
+    [switch]$InstallDefaultDeps = $false,
+    [switch]$UseForkedVersion = $false
 )
 
 # Set parameters for execution.
@@ -28,7 +29,7 @@ if (!$ReserveSource -and (Test-Path source)) {
 }
 
 # Ask the specific version of Tensorflow.
-$supportedVersions = @("v1.13.1", "v1.12.0", "v1.11.0")
+$supportedVersions = @("v1.15.3","v1.13.1", "v1.12.0", "v1.11.0")
 $options = [Array]::CreateInstance([System.Management.Automation.Host.ChoiceDescription], $supportedVersions.Count)
 for ($i = 0; $i -lt $supportedVersions.Count; $i++) {
     $options[$i] = [System.Management.Automation.Host.ChoiceDescription]::new("&$($i + 1) - $($supportedVersions[$i])",
@@ -94,18 +95,31 @@ if ($buildVersion -eq "v1.11.0" -or $buildVersion -eq "v1.12.0") {
     $bazelVersion = "0.15.0"
 } elseif ($buildVersion -eq "v1.13.1") {
     $bazelVersion = "0.20.0"
+} elseif ($buildVersion -eq "v1.15.3") {
+    $bazelVersion = "0.26.0"  # chocolatey does not have subversions, only 0.26.0 or 0.27.0, staying with 0.26.0
 }
 
 # Installation of dependencies
 if (!(CheckInstalled chocolatey)) {
     Write-Host "Installing Chocolatey package manager."
     Set-ExecutionPolicy Bypass -Scope Process -Force
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString("https://chocolatey.org/install.ps1"))
+    # Invoke-Expression ((New-Object System.Net.WebClient).DownloadString("https://chocolatey.org/install.ps1"))
+    
+    # Updated powershell command from chocolatey website
+    Set-ExecutionPolicy Bypass -Scope Process -Force
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+
 }
 choco feature enable -n allowGlobalConfirmation | Out-Null # Enable global confirmation for chocolatey package installation.
 
 if (!(CheckInstalled pacman)) {
-    $version = askForVersion "20180531.0.0"
+    if ($buildVersion -eq "v1.15.3") {
+        $version = askForVersion "20200602.0.0"
+    } else {
+        $version = askForVersion "20180531.0.0"
+    }
     choco install msys2 --version $version --params "/NoUpdate /InstallDir:C:\msys64"
 }
 $ENV:Path += ";C:\msys64\usr\bin"
@@ -136,21 +150,30 @@ if (!(CheckInstalled python "3.6.7")) {
 }
 
 # Get the source code of Tensorflow and checkout to the specific version.
-if (!$ReserveSource) {
-    git clone https://github.com/tensorflow/tensorflow.git
-    Rename-Item tensorflow source
-    Set-Location source
-} else {
-    Set-Location source
-    git fetch
-    git reset --hard origin/master
-    git checkout -f master
-    git pull
+if ($UseForkedVersion) {  # TODO: if this is the case, do not apply the patch?
+    Set-Location source  # simply change to source, leave the code as is!
+    if ($buildVersion -eq "v1.15.3") {
+        git checkout r1.15  # to add any new changes vs 1.15.3 (maybe there are none)
+    } else {
+        git checkout -f tags/$buildVersion
+    }
 }
+else {
+    if (!$ReserveSource) {
+        git clone https://github.com/tensorflow/tensorflow.git
+        Rename-Item tensorflow source
+        Set-Location source
+    } else {
+        Set-Location source
+        git fetch
+        git reset --hard origin/master
+        git checkout -f master
+        git pull
+    }
 
-git checkout -f tags/$buildVersion
-git clean -fx
-
+    git checkout -f tags/$buildVersion
+    git clean -fx
+}
 # Apply patches to source.
 if ($buildVersion -eq "v1.11.0") {
     # Eigen Patch for v1.11.0
@@ -163,6 +186,7 @@ if ($buildVersion -eq "v1.11.0") {
 } elseif ($buildVersion -eq "v1.13.1") {
     git apply --ignore-space-change --ignore-white '..\patches\vs_2017.1.13.1.patch'
 }
+# In 1.15.3 the 'vs_2017.1.13.1.patch' has already been integrated into the code.
 
 if ($BuildCppAPI) {
     if ($buildVersion -eq "v1.11.0") {
@@ -177,6 +201,9 @@ if ($BuildCppAPI) {
         # C++ Symbol Patch for v1.13.1
         git apply --ignore-space-change --ignore-white "..\patches\cpp_symbol.1.13.1.patch"
         Copy-Item ..\patches\tf_exported_symbols_msvc.lds tensorflow\
+    } elseif ($buildVersion -eq "v1.15.3") {
+        # Copy user-defined list of symbols from 'def_file_filter.py.tpl' equivalent to  'tf_exported_symbols_msvc.lds' in TF 1.15
+        Copy-Item ..\patches\def_file_filter.py.tpl tensorflow\tools\def_file_filter\ -Force
     }
 }
 
@@ -193,8 +220,13 @@ if (!$ReserveVenv) {
     py -3 -m venv venv
     .\venv\Scripts\Activate.ps1
     pip3 install six numpy wheel
-    pip3 install keras_applications==1.0.5 --no-deps
-    pip3 install keras_preprocessing==1.0.3 --no-deps
+    if ($buildVersion -eq "v1.15.3") {
+        pip3 install keras_applications==1.0.6 --no-deps
+        pip3 install keras_preprocessing==1.0.5 --no-deps
+    } else {
+        pip3 install keras_applications==1.0.5 --no-deps
+        pip3 install keras_preprocessing==1.0.3 --no-deps
+    }
 } else {
     .\venv\Scripts\Activate.ps1
 }

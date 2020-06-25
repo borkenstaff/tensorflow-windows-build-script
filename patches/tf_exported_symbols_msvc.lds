@@ -40,3 +40,26 @@ EXPORTS
     ?CopyFromInternal@Tensor@tensorflow@@AEAAXAEBV12@AEBVTensorShape@2@@Z
     ??1NodeDef@tensorflow@@UEAA@XZ
     ??0NodeDef@tensorflow@@QEAA@AEBV01@@Z
+
+    ??_7GraphDef@tensorflow@@6B@ 
+    ??0MatMul@ops@tensorflow@@QEAA@AEBVScope@2@VInput@2@1AEBUAttrs@012@@Z   
+    ?Const@ops@tensorflow@@YA?AVOutput@2@AEBVScope@2@AEBUInitializer@Input@2@@Z
+    ??0Placeholder@ops@tensorflow@@QEAA@AEBVScope@2@W4DataType@2@AEBUAttrs@012@@Z
+    ??0?$TensorShapeBase@VPartialTensorShape@tensorflow@@@tensorflow@@QEAA@V?$Span@$$CB_J@absl@@@Z
+    ??0?$TensorShapeBase@VPartialTensorShape@tensorflow@@@tensorflow@@QEAA@XZ
+    ?InternalSwap@GraphDef@tensorflow@@AEAAXPEAV12@@Z
+    ?CopyFrom@GraphDef@tensorflow@@QEAAXAEBV12@@Z   	
+    ?WithOpNameImpl@Scope@tensorflow@@AEBA?AV12@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z
+    ?ToGraphDef@Scope@tensorflow@@QEBA?AVStatus@2@PEAVGraphDef@2@@Z
+    ?NewRootScope@Scope@tensorflow@@SA?AV12@XZ    
+    ??1Scope@tensorflow@@QEAA@XZ
+    ??0Initializer@Input@tensorflow@@QEAA@AEBV?$initializer_list@UInitializer@Input@tensorflow@@@std@@@Z
+    ?NewSession@tensorflow@@YAPEAVSession@1@AEBUSessionOptions@1@@Z
+    ??4LogFinisher@internal@protobuf@google@@QEAAXAEAVLogMessage@123@@Z
+    ??6LogMessage@internal@protobuf@google@@QEAAAEAV0123@PEBD@Z
+    ??0LogMessage@internal@protobuf@google@@QEAA@W4LogLevel@23@PEBDH@Z
+    ??1LogMessage@internal@protobuf@google@@QEAA@XZ
+    ?ComputeFlatInnerDims@Tensor@tensorflow@@CA?AV?$InlinedVector@_J$03V?$allocator@_J@std@@@absl@@V?$Span@$$CB_J@4@_J@Z
+    ?dim_sizes@?$TensorShapeBase@VTensorShape@tensorflow@@@tensorflow@@QEBA?AV?$InlinedVector@_J$03V?$allocator@_J@std@@@absl@@XZ
+    ?empty_string@Status@tensorflow@@CAAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+    ?ReadTextProto@tensorflow@@YA?AVStatus@1@PEAVEnv@1@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEAVMessage@protobuf@google@@@Z
