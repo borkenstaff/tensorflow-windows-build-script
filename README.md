@@ -1,5 +1,6 @@
 # Tensorflow Windows Build Script
 
+### Note: I updated @guikarist repo to add compatibility for TF 1.15.3. The rest of this README.md has not been updated yet and is a copy of the source!
 Building Tensorflow on Windows is really a **tough** thing and there should be many problems to solve. Thus, this script automates the process of building on Windows, which does the following things for you:
 
 * Installation of Dependencies
